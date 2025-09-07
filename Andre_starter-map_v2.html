@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ANDRE Starter Map — Game Edition</title>
+<style>
+  :root{
+    --bg:#071025; --card:#0b1630; --accent:#60a5fa; --muted:#9fb0c8;
+    --glass: rgba(255,255,255,0.03);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#07182b 60%);color:#e6f0ff}
+  .wrap{max-width:1200px;margin:20px auto;padding:16px;display:grid;grid-template-columns:1fr 420px;gap:18px;align-items:start}
+  header{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  h1{margin:0;font-size:1.6rem;color:var(--accent)}
+  p.lead{margin:0;color:var(--muted)}
+  .map-card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(2,6,23,0.6);position:relative}
+  .map-svg{width:100%;height:620px;border-radius:8px;background:linear-gradient(180deg,#07243a 0%, #0b2a48 100%);display:block}
+  .game-panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);height:100%;}
+  .panel-title{color:var(--accent);font-weight:700;margin-bottom:8px}
+  .commands{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .cmd {background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);font-weight:700;color:var(--muted);font-size:0.95rem}
+  .cmd.active{border-color:rgba(96,165,250,0.9);color:#bfe3ff}
+  .console{background:#031428;border-radius:8px;padding:8px;min-height:220px;max-height:320px;overflow:auto;border:1px solid rgba(255,255,255,0.03);margin-bottom:10px}
+  .log-entry{margin-bottom:8px;line-height:1.3}
+  .log-entry .sys{color:#9fb0c8}
+  .input-row{display:flex;gap:8px}
+  input.cmd-input{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+  button.btn{background:linear-gradient(90deg,#1f6feb,#1b82ff);color:white;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:8px 10px;border-radius:8px}
+  .progress-wrap{margin:8px 0}
+  .progress-bar{height:12px;background:linear-gradient(90deg,#0b1220,#08121a);border-radius:8px;border:1px solid rgba(255,255,255,0.03);overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#1f6feb,#06b6d4);transition:width 400ms ease}
+  .side-cards{display:grid;gap:10px;margin-top:10px}
+  .card{background:var(--card);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+  .card h4{margin:0;color:var(--accent);font-size:0.95rem}
+  .small{font-size:0.86rem;color:var(--muted);margin-top:6px}
+  .matrix-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+  .matrix-cell{background:rgba(255,255,255,0.01);padding:8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.02);min-height:56px}
+  footer{grid-column:1/-1;margin-top:8px;color:var(--muted);font-size:0.85rem;text-align:center}
+  @media (max-width:980px){.wrap{grid-template-columns:1fr;}.map-svg{height:420px}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>ANDRE Starter Map — Game</h1>
+        <p class="lead">Activate ANDRE and use the core commands to play through a teaching cycle. Export your progress when complete.</p>
+      </div>
+    </header>
+
+    <!-- LEFT: Map -->
+    <section class="map-card">
+      <svg class="map-svg" viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg" id="andreMap" aria-label="ANDRE City map">
+        <defs>
+          <linearGradient id="r1" x1="0" x2="1"><stop offset="0" stop-color="#0ea5e9"/><stop offset="1" stop-color="#3b82f6"/></linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- stars -->
+        <g opacity="0.8">
+          <circle cx="80" cy="40" r="1.2" fill="#fff"/>
+          <circle cx="160" cy="70" r="1.6" fill="#fff"/>
+          <circle cx="240" cy="30" r="0.9" fill="#fff"/>
+          <circle cx="360" cy="60" r="1.4" fill="#fff"/>
+        </g>
+
+        <!-- river -->
+        <path d="M0 400 C250 360, 450 460, 700 420 C920 390, 1100 460, 1200 420" fill="none" stroke="#76e4f7" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+
+        <!-- ANALYZE -->
+        <g id="district-analyze" class="district" title="ANALYZE">
+          <rect x="80" y="150" width="160" height="260" rx="12" fill="#133a5a" stroke="#1f6feb" stroke-width="2" filter="url(#glow)"/>
+          <g transform="translate(120,200)">
+            <rect width="40" height="40" fill="#0ea5e9" rx="6"/>
+            <rect y="56" width="40" height="40" fill="#60a5fa" rx="6"/>
+            <rect y="112" width="40" height="40" fill="#1e40af" rx="6"/>
+          </g>
+          <text x="160" y="430" font-size="18" text-anchor="middle" fill="#9fc9ff">ANALYZE</text>
+        </g>
+
+        <!-- NAVIGATE -->
+        <g id="district-navigate" class="district" title="NAVIGATE">
+          <ellipse cx="460" cy="210" rx="120" ry="70" fill="#0e3946" stroke="#10b981" stroke-width="2" filter="url(#glow)"/>
+          <path d="M420 210 L500 210" stroke="#34d399" stroke-width="4" opacity="0.8"/>
+          <text x="460" y="260" font-size="18" text-anchor="middle" fill="#9feacf">NAVIGATE</text>
+        </g>
+
+        <!-- DECIDE -->
+        <g id="district-decide" class="district" title="DECIDE">
+          <rect x="720" y="180" width="180" height="260" rx="16" fill="#1a2d3a" stroke="#f59e0b" stroke-width="2" filter="url(#glow)"/>
+          <circle cx="810" cy="220" r="36" fill="#fbbf24" opacity="0.15"/>
+          <text x="810" y="460" font-size="18" text-anchor="middle" fill="#ffd69a">DECIDE</text>
+        </g>
+
+        <!-- REVIEW -->
+        <g id="district-review" class="district" title="REVIEW">
+          <rect x="960" y="320" width="120" height="120" rx="10" fill="#172033" stroke="#8b5cf6" stroke-width="2" filter="url(#glow)"/>
+          <rect x="980" y="340" width="20" height="20" fill="#a78bfa"/>
+          <rect x="1010" y="340" width="20" height="20" fill="#a78bfa"/>
+          <text x="1020" y="460" font-size="18" text-anchor="middle" fill="#cdb7ff">REVIEW</text>
+        </g>
+
+        <!-- EVOLVE -->
+        <g id="district-evolve" class="district" title="EVOLVE">
+          <path d="M540 420 L570 360 L600 420 L570 480 Z" fill="#ef4444" stroke="#fb7185" stroke-width="1" filter="url(#glow)"/>
+          <text x="570" y="520" font-size="18" text-anchor="middle" fill="#ffb3b3">EVOLVE</text>
+        </g>
+
+        <!-- compass (SQ3R hint) -->
+        <g id="compass" title="SQ3R">
+          <circle cx="340" cy="120" r="28" fill="#071a2a" stroke="#60a5fa" stroke-width="2"/>
+          <path d="M340 92 L340 40" stroke="#60a5fa" stroke-width="2"/>
+          <text x="340" y="130" text-anchor="middle" font-size="12" fill="#9fbbdc">SQ3R</text>
+        </g>
+      </svg>
+      <div style="position:absolute;right:18px;top:18px;width:300px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)">
+        <div style="color:var(--accent);font-weight:700;margin-bottom:6px">Map Tip</div>
+        <div style="color:var(--muted);font-size:0.95rem">Explore the map for metaphors. Use the right panel to run the short ANDRE command game.</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Game Panel -->
+    <aside class="game-panel">
+      <div class="panel-title">ANDRE Command Console</div>
+      <div class="small">Core commands: <span id="cmdList"></span></div>
+
+      <!-- Commands visual -->
+      <div class="commands" id="commandsContainer" style="margin-top:10px">
+        <!-- buttons will be generated by JS -->
+      </div>
+
+      <!-- Console output -->
+      <div class="console" id="consoleLog" role="log" aria-live="polite"></div>
+
+      <!-- Input -->
+      <div class="input-row" style="margin-top:8px">
+        <input id="cmdInput" class="cmd-input" placeholder="Type a command (e.g., /activate) and press Enter" autocomplete="off" />
+        <button class="btn" id="sendBtn">Run</button>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-wrap">
+        <div class="small" style="margin-top:8px">Progress</div>
+        <div class="progress-bar" aria-hidden="false">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div class="small" id="progressLabel">0 / 7 steps</div>
+      </div>
+
+      <!-- Side cards: quick references -->
+      <div class="side-cards">
+        <div class="card">
+          <h4>Prompt Starter</h4>
+          <div class="small" id="promptSample">Type <code>/prompt</code> to receive a mobile-friendly persona prompt.</div>
+        </div>
+
+        <div class="card">
+          <h4>Eisenhower Matrix</h4>
+          <div class="matrix-grid">
+            <div class="matrix-cell"><b>Do Now</b><div class="small">Urgent + Important</div></div>
+            <div class="matrix-cell"><b>Plan</b><div class="small">Important, not urgent</div></div>
+            <div class="matrix-cell"><b>Delegate</b><div class="small">Urgent, not important</div></div>
+            <div class="matrix-cell"><b>Eliminate</b><div class="small">Not urgent, not important</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>Commands</h4>
+          <div class="small">Use commands in sequence after <code>/activate</code>. Try: <code>/survey</code> → <code>/question</code> → <code>/recite</code> → <code>/review</code> → <code>/prompt</code> → <code>/matrix</code> → <code>/export</code></div>
+        </div>
+
+        <div class="card" id="exportCard">
+          <h4>Export</h4>
+          <div class="small">Use <code>/export</code> to download your ANDRE state JSON when you're ready.</div>
+        </div>
+      </div>
+    </aside>
+
+    <footer>Made for ANDRE — use this as a playable starter to teach people the methodology. Save the file locally to run offline.</footer>
+  </div>
+
+<script>
+  // Core game commands
+  const CORE_COMMANDS = ["/activate","/survey","/question","/recite","/review","/prompt","/matrix","/export","/reset"];
+  // Game steps that count toward progress (exclude /activate, /export, /reset)
+  const PROGRESS_STEPS = ["/survey","/question","/recite","/review","/prompt","/matrix"];
+  // State
+  const state = {
+    activated:false,
+    revealed:[],
+    stepsCompleted:[],
+    createdAt: new Date().toISOString(),
+    version:"7.1.0",
+    notes:{}
+  };
+
+  // Populate command badges
+  const commandsContainer = document.getElementById('commandsContainer');
+  CORE_COMMANDS.forEach(cmd => {
+    const el = document.createElement('div');
+    el.className = 'cmd';
+    el.textContent = cmd;
+    el.title = cmd;
+    el.onclick = () => runCommand(cmd);
+    commandsContainer.appendChild(el);
+  });
+  document.getElementById('cmdList').textContent = CORE_COMMANDS.join(' ');
+
+  // Console log helper
+  const consoleLog = document.getElementById('consoleLog');
+  function logSystem(text) {
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `<div class="sys">ANDRE: ${escapeHtml(text)}</div>`;
+    consoleLog.prepend(div);
+  }
+  function logUser(text) {
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `<div style="color:#cfe8ff">YOU: ${escapeHtml(text)}</div>`;
+    consoleLog.prepend(div);
+  }
+  function escapeHtml(s){ return (s+'').replace(/[&<>"'`]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"`":'&#96;'}[c])); }
+
+  // Input handling
+  const input = document.getElementById('cmdInput');
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.onclick = () => { const v = input.value.trim(); if (v) runCommand(v); input.value=''; input.focus(); };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { sendBtn.click(); } });
+
+  // Command runner
+  function runCommand(raw) {
+    const cmd = raw.split(' ')[0].toLowerCase();
+    logUser(raw);
+
+    // /reset works anytime
+    if (cmd === '/reset') {
+      state.activated = false;
+      state.revealed = [];
+      state.stepsCompleted = [];
+      state.notes = {};
+      updateProgress();
+      highlightCommands();
+      logSystem('State reset. Type /activate to start again.');
+      return;
+    }
+
+    if (cmd === '/activate') {
+      if (state.activated) { logSystem('ANDRE is already active.'); return; }
+      state.activated = true;
+      logSystem('ANDRE activated. Core frameworks unlocked: SQ3R, Reciprocal Teaching, Prompt Engineering, Eisenhower Matrix. Type /survey to begin.');
+      highlightCommands();
+      return;
+    }
+
+    // require activation for other commands
+    if (!state.activated) {
+      logSystem('Please activate first with /activate.');
+      return;
+    }
+
+    switch(cmd) {
+      case '/survey':
+        if (!state.stepsCompleted.includes('/survey')) {
+          state.stepsCompleted.push('/survey');
+          revealMapArea('analyze');
+          logSystem('Survey complete. Write a one-sentence project goal. (Tip: keep it short and specific.)');
+        } else {
+          logSystem('You already ran /survey. Try the next step: /question');
+        }
+        break;
+
+      case '/question':
+        if (!state.stepsCompleted.includes('/question')) {
+          state.stepsCompleted.push('/question');
+          revealMapArea('navigate');
+          logSystem('Great. Turn your goal into 3 specific questions you need answered. (e.g., Who, What, When?)');
+        } else {
+          logSystem('You already ran /question. Try /recite next.');
+        }
+        break;
+
+      case '/recite':
+        if (!state.stepsCompleted.includes('/recite')) {
+          state.stepsCompleted.push('/recite');
+          revealMapArea('decide');
+          logSystem('Teach-back time — explain your project in 2–3 lines as if you’re teaching someone new.');
+        } else {
+          logSystem('Recite already done. Proceed to /review.');
+        }
+        break;
+
+      case '/review':
+        if (!state.stepsCompleted.includes('/review')) {
+          state.stepsCompleted.push('/review');
+          revealMapArea('review');
+          logSystem('Review: what assumptions changed? Update one task or timeline item.');
+        } else {
+          logSystem('Review already completed.');
+        }
+        break;
+
+      case '/prompt':
+        if (!state.stepsCompleted.includes('/prompt')) {
+          state.stepsCompleted.push('/prompt');
+          revealMapArea('evolve');
+          logSystem('Here’s a starter persona prompt — copy it into your notes:');
+          logSystem('"Act as a friendly mobile assistant. Provide short, actionable steps and ask one clarifying question."');
+        } else {
+          logSystem('You already requested a prompt. Try /matrix next.');
+        }
+        break;
+
+      case '/matrix':
+        if (!state.stepsCompleted.includes('/matrix')) {
+          state.stepsCompleted.push('/matrix');
+          logSystem('Eisenhower Matrix shown. Decide one task to Do Now and one to Plan.');
+        } else {
+          logSystem('Matrix already reviewed.');
+        }
+        break;
+
+      case '/export':
+        // allow export anytime, but encourage final export after steps
+        exportState();
+        break;
+
+      default:
+        logSystem('Unknown command. Available core commands: ' + CORE_COMMANDS.join(', '));
+    }
+
+    updateProgress();
+    highlightCommands();
+  }
+
+  // Visual helpers: reveal areas on map (flash)
+  function revealMapArea(name) {
+    const mapping = {
+      'analyze':'district-analyze',
+      'navigate':'district-navigate',
+      'decide':'district-decide',
+      'review':'district-review',
+      'evolve':'district-evolve'
+    };
+    const id = mapping[name] || mapping['analyze'];
+    const el = document.getElementById(id);
+    if (!el) return;
+    // quick visual flash
+    el.style.transition = 'transform 250ms ease, opacity 250ms ease';
+    el.style.transform = 'scale(1.03)';
+    el.style.opacity = 1;
+    setTimeout(()=>{ el.style.transform = ''; }, 300);
+  }
+
+  // Progress update
+  function updateProgress() {
+    const completed = PROGRESS_STEPS.filter(s => state.stepsCompleted.includes(s)).length;
+    const total = PROGRESS_STEPS.length;
+    const pct = Math.round((completed / total) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `${completed} / ${total} steps`;
+    if (completed === total) {
+      logSystem('🎉 You completed the ANDRE cycle! Use /export to save your state.');
+    }
+  }
+
+  // Highlight available commands (after activation)
+  function highlightCommands() {
+    document.querySelectorAll('.cmd').forEach(el => {
+      const cmd = el.textContent.trim();
+      if (!state.activated && cmd !== '/activate' && cmd !== '/reset') {
+        el.classList.remove('active');
+        el.style.opacity = 0.6;
+      } else {
+        el.classList.add('active');
+        el.style.opacity = 1;
+      }
+    });
+  }
+  highlightCommands();
+
+  // Export JSON following filename pattern andre_state_[date]_v7.1.json
+  function exportState() {
+    state.exportedAt = new Date().toISOString();
+    state.progress = {completed: state.stepsCompleted.length, total: PROGRESS_STEPS.length};
+    state.revealed = Array.from(new Set(state.stepsCompleted));
+    const payload = {
+      system_config: {methodology:"ANDRE Methodology", version: state.version},
+      user_state: {
+        projectName: "ANDRE Starter Game",
+        createdAt: state.createdAt,
+        exportedAt: state.exportedAt,
+        activated: state.activated,
+        stepsCompleted: state.stepsCompleted,
+        notes: state.notes,
+        progress: state.progress
+      },
+      compatibility_layer: {interface_version:"6.4_compatible"},
+      metadata: {filenamePattern:"andre_state_[type]_[date]_v7.1.json"}
+    };
+    const d = new Date();
+    const dateStr = d.toISOString().slice(0,10);
+    const filename = `andre_state_${dateStr}_v7.1.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    logSystem('Exported your state: ' + filename);
+  }
+
+  // Initialize log with welcome
+  logSystem('Welcome! Type /activate to begin the ANDRE game. Tip: follow the learning sequence to complete the cycle.');
+  updateProgress();
+
+  // Expose runCommand for command buttons
+  window.runCommand = runCommand;
+
+  // Optional: clicking map areas triggers reveal message in console
+  document.getElementById('district-analyze').addEventListener('click', ()=> runCommand('/survey'));
+  document.getElementById('district-navigate').addEventListener('click', ()=> runCommand('/question'));
+  document.getElementById('district-decide').addEventListener('click', ()=> runCommand('/recite'));
+  document.getElementById('district-review').addEventListener('click', ()=> runCommand('/review'));
+  document.getElementById('district-evolve').addEventListener('click', ()=> runCommand('/prompt'));
+  document.getElementById('compass').addEventListener('click', ()=> logSystem('SQ3R hint: Survey → Question → Read → Recite → Review — use commands to practice these steps.'));
+
+  // Make console scroll to top when new items added
+  const obs = new MutationObserver(() => {
+    // keep newest entries on top (we prepend), ensure user sees recent
+    consoleLog.scrollTop = 0;
+  });
+  obs.observe(consoleLog, {childList:true});
+</script>
+</body>
+</html>
